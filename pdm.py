@@ -20,26 +20,77 @@ clock_start = tm.time()
 
 #read input parameters
 import numpy as np
-execfile(inputs_path)
-print 'inputs_path = ', inputs_path
-print 'debug = ', debug
-print 'N_devices = ', N_devices
-print 'sensor_sigma = ', sensor_sigma
-print 'N_timesteps = ', N_timesteps
-print 'time_start = ', time_start
-print 'output_interval = ', output_interval
-print 'strategy = ', strategy
-print 'pdm_threshold_time = ', pdm_threshold_time
-print 'pdm_threshold_probability = ', pdm_threshold_probability
-print 'pdm_skip_time = ', pdm_skip_time
-print 'N_technicians = ', N_technicians
-print 'repair_duration = ', repair_duration
-print 'maintenance_duration = ', maintenance_duration
-print 'rn_seed = ', rn_seed
-print 'issues = ', issues
+
+
+#turn debugging output on?
+debug = True
+
+#number of devices
+N_devices = 1000
+
+#sensor standard deviation
+sensor_sigma = 0.01
+
+#number of timesteps
+N_timesteps = 50000
+
+#starting time
+time_start = 0
+
+#interval (in timesteps) between device outputs
+output_interval = 10
+
+#maintenance strategy = rtf or pdm
+strategy = 'rtf'
+
+#send devices to maintenance when predicted lifetime is less that this threshold
+pdm_threshold_time = 400
+
+#probability threshold for pdm classifier to send device to preventative maintenance
+pdm_threshold_probability = 0.5
+
+#execute pdm check after this many timesteps
+pdm_skip_time = 5
+
+#number of technicians
+N_technicians = N_devices/10
+
+#failed' device's repair time
+repair_duration = 100
+
+#maintenance duration
+maintenance_duration = repair_duration/4
+
+#random number seed
+rn_seed = 17
+
+#issue data
+issues = {
+    'crud':         {'ID':0, 'coefficient':0.100000,   'fatal':False},
+    'jammed_rotor': {'ID':1, 'coefficient':0.000080,   'fatal':True },
+    'cracked_valve':{'ID':2, 'coefficient':0.000010,   'fatal':True },
+    'broken_gear':  {'ID':3, 'coefficient':0.000002,   'fatal':True },
+}
+
+print('inputs_path = ', inputs_path)
+print('debug = ', debug)
+print('N_devices = ', N_devices)
+print('sensor_sigma = ', sensor_sigma)
+print('N_timesteps = ', N_timesteps)
+print('time_start = ', time_start)
+print('output_interval = ', output_interval)
+print('strategy = ', strategy)
+print('pdm_threshold_time = ', pdm_threshold_time)
+print('pdm_threshold_probability = ', pdm_threshold_probability)
+print('pdm_skip_time = ', pdm_skip_time)
+print('N_technicians = ', N_technicians)
+print('repair_duration = ', repair_duration)
+print('maintenance_duration = ', maintenance_duration)
+print('rn_seed = ', rn_seed)
+print('issues = ', issues)
 
 #imports
-print 'setting up...'
+print('setting up...')
 import numpy as np
 import pandas as pd
 
@@ -85,7 +136,7 @@ if (strategy == 'pdm'):
     for issue in fatal_issues:
         y_col = issue + '_in_' + str(pdm_threshold_time)
         model_file = model_folder + y_col + '_model.pkl'
-        print 'loading ' + model_file
+        print('loading ' + model_file)
         with open(model_file, 'rb') as file:
             import pickle as pkl
             models[y_col] = pkl.load(file)
@@ -95,7 +146,7 @@ repair_data = []
 telemetry_data= []
 from helper_fns import *
 times = range(time_start, time_start + N_timesteps)
-print 'operating devices...'
+print('operating devices...')
 for time in times:
     
     #update operating devices' sensors
@@ -133,19 +184,19 @@ import os
 if (len(repair_data) > 0):
     cols = ['time', 'deviceID', 'issue', 'technicianID'] + names + ['production_rate']
     repairs = pd.DataFrame(data=repair_data)[cols]
-    print 'repairs.shape = ', repairs.shape
+    print('repairs.shape = ', repairs.shape)
     file = 'data/repairs_' + strategy + '.csv.gz'
     repairs.to_csv(file, header=False, index=False, sep='|', compression='gzip')
-    print file + ' size (KB) = ', os.path.getsize(file)/(1024)
+    print(file + ' size (KB) = ', os.path.getsize(file)/(1024))
 
 #convert telemetry to dataframe
 if (len(telemetry_data) > 0):
     cols = ['time', 'deviceID', 'sensor', 'value']
     telemetry = pd.DataFrame(data=telemetry_data)[cols]
-    print 'telemetry.shape = ', telemetry.shape
+    print('telemetry.shape = ', telemetry.shape)
     file = 'data/telemetry_' + strategy + '.csv.gz'
     telemetry.to_csv(file, header=False, index=False, sep='|', compression='gzip')
-    print file + ' size (MB) = ', os.path.getsize(file)/(1024**2)
+    print(file + ' size (MB) = ', os.path.getsize(file)/(1024**2))
 
 #done
-print 'execution time (min) = ', (tm.time() - clock_start)/60.0
+print('execution time (min) = ', (tm.time() - clock_start)/60.0)

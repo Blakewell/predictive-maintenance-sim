@@ -6,3 +6,4 @@ private
 .DS_Store
 Anaconda2*
 anaconda2
+venv/

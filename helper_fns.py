@@ -89,7 +89,7 @@ def check_devices(devices, issues, time, debug):
                     devices[deviceID]['fail_time'] = time
                     devices[deviceID]['production_rate_fail_time'] = devices[deviceID]['production_rate']
                     if (debug):
-                        print 'DEVICE  FAILURE    :    time = ', time, 'deviceID = ', deviceID#, '\tissue = ', issue
+                        print('DEVICE  FAILURE    :    time = ', time, 'deviceID = ', deviceID)#, '\tissue = ', issue
     return
 
 #send first available technician to service failed deviceIDs
@@ -109,8 +109,8 @@ def service_failed_devices(devices, technicians, time, repair_duration, debug):
                         repair_maintenance, debug)
                     repairs += [repair]
                     if (debug):
-                        print 'FAILURE MAINTENANCE:    time = ', time, 'deviceID = ', deviceID, '\tissue = ', issue, \
-                            '\ttechnicianID = ', technicianID, '\trepair_complete_time = ', devices[deviceID]['repair_complete_time']
+                        print ('FAILURE MAINTENANCE:    time = ', time, 'deviceID = ', deviceID, '\tissue = ', issue, \
+                            '\ttechnicianID = ', technicianID, '\trepair_complete_time = ', devices[deviceID]['repair_complete_time'])
                     break
     return repairs
 
@@ -171,9 +171,9 @@ def pdm_check(devices, issues, time, technicians, models, maintenance_duration, 
                                 repair_maintenance, debug)
                             repairs += [repair]
                             if (debug):
-                                print 'prevent MAINTENANCE:    time = ', time, 'deviceID = ', deviceID, '\tissue = ', issue, \
+                                print ('prevent MAINTENANCE:    time = ', time, 'deviceID = ', deviceID, '\tissue = ', issue, \
                                     '\ttechnicianID = ', technicianID, '\trepair_complete_time = ', \
-                                    devices[deviceID]['repair_complete_time'], '\t****'
+                                    devices[deviceID]['repair_complete_time'], '\t****')
                             break
     return repairs
 
@@ -201,7 +201,7 @@ def complete_maintenance(devices, issues, technicians, time, debug):
                 devices[deviceID][issue + '_repair_time'] = time
                 devices[deviceID]['production_rate_fail_time'] = 0.0
                 if (debug):
-                    print 'REPAIR  COMPLETE   :    time = ', time, 'deviceID = ', deviceID, '\ttechnicianID = ', technicianID
+                    print('REPAIR  COMPLETE   :    time = ', time, 'deviceID = ', deviceID, '\ttechnicianID = ', technicianID)
     return
 
 #generate sensor telemetry update output_times
@@ -307,14 +307,14 @@ def time_since_issue(records, issue_names):
 def prep_rtf_data(time_bucket_size, issues, telemetry_file, repairs_file):
     
     #read device telemetry and add time_bucket column
-    print 'reading ' + telemetry_file + ' ...'
+    print('reading ' + telemetry_file + ' ...')
     df = pd.read_csv(telemetry_file, header=None, sep='|', compression='gzip', \
         names=['time', 'deviceID', 'sensor', 'value'])
     df['time_bucket'] = (df.time/time_bucket_size).astype(int)
     telemetry = df
     
     #pivot telemetry
-    print 'pivoting telemetry...'
+    print('pivoting telemetry...')
     df = telemetry.pivot_table(values='value', index=['deviceID', 'time_bucket'], 
         aggfunc='mean', columns='sensor').reset_index()
     df['time'] = df.time_bucket*time_bucket_size
@@ -325,7 +325,7 @@ def prep_rtf_data(time_bucket_size, issues, telemetry_file, repairs_file):
     telemetry_pivot = df
     
     #read device repairs logs
-    print 'reading ' + repairs_file + ' ...'
+    print('reading ' + repairs_file + ' ...')
     df = pd.read_csv(repairs_file, header=None, sep='|', compression='gzip', \
         names=['time', 'deviceID', 'issue', 'technicianID', 'temperature', 'pressure', 'load', 'production_rate'])
     df['time_bucket'] = (df.time/time_bucket_size).astype(int)
@@ -338,7 +338,7 @@ def prep_rtf_data(time_bucket_size, issues, telemetry_file, repairs_file):
     repairs = df
     
     #merge telemetry and repairs
-    print 'merging telemetry and repairs...'
+    print('merging telemetry and repairs...')
     df = telemetry_pivot.merge(repairs, on=['time_bucket', 'deviceID'], how='left', sort=True).reset_index(drop=True)
     df.issue = df.issue.astype(str)
     df.loc[df.issue == 'nan', 'issue'] = 'none'
@@ -349,14 +349,14 @@ def prep_rtf_data(time_bucket_size, issues, telemetry_file, repairs_file):
     #get issue_names with crud dropped
     issue_names = issues.keys()
     issue_names.remove('crud')
-    print 'issue_names = ', issue_names
+    print('issue_names = ', issue_names)
     
     #compute time for each device to hit next issue, takes a minute...
-    print 'computing time to next issue...'
+    print('computing time to next issue...')
     records_time = time_to_issue(telemetry_repairs, issue_names)
     
     #compute time for each device to hit next issue, takes a minute...
-    print 'computing time since previous issue...'
+    print('computing time since previous issue...')
     records = time_since_issue(records_time, issue_names)
     
     #done
